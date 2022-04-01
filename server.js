@@ -22,8 +22,17 @@ app.post("/playerCount", function (req, res) {
     res.end(JSON.stringify(data));
 })
 
+app.post("/position", function (req, res) {
+    console.log(req.body);
+    const json = req.body;
+    console.log(json);
+    res.end(JSON.stringify(json));
+})
+
+// Obiekt do zarządzania logowaniem, użytkownikami
 let playerManager = {
     users: [],
+
     checkUserValidity: function (newUser) {
         if (newUser.login === "") return { status: "INVALID_NICKNAME" };
         if (this.users.length === 2) return { status: "MAX_AMOUNT_OF_PLAYERS_REACHED" };
@@ -39,6 +48,26 @@ let playerManager = {
         for (let i in this.users)
             if (user === this.users[i]) return i;
     },
+}
+
+// Obiekt do zarządzania pozycją na planszy i przebiegiem gry
+let positionManager = {
+    currentPositionTable: [
+        [0, 1, 0, 1, 0, 1, 0, 1],
+        [1, 0, 1, 0, 1, 0, 1, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 2, 0, 2, 0, 2, 0, 2],
+        [2, 0, 2, 0, 2, 0, 2, 0]
+    ],
+
+    swapFields: function (x1, y1, x2, y2) {
+        const temp = this.currentPositionTable[x1][y1];
+        this.currentPositionTable[x1][y1] = this.currentPositionTable[x2][y2];
+        this.currentPositionTable[x2][y2] = temp;
+    }
 }
 
 

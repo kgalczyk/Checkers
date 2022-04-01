@@ -27,21 +27,19 @@ class Raycaster {
 
                 // Jeśli nie znaleziono bierki, wychodzimy z funkcji
                 if (position === undefined) return;
-                console.log(position);
 
                 // Przed ruchem pobieranie pozycji bierki w tablicy
-                let oldPosition = gameManager.raycaster.piece.userData.positionInPiecesArray;
+                let oldPiecePositionInArray = gameManager.raycaster.piece.userData.positionInPiecesArray;
+
+                // Przekazanie nowej pozycji do konwersji na współrzędne w tablicy bierek
+                let newPiecePositionInArray = gameManager.raycaster.piece.userData.updatePositionInArray(position);
 
                 // wykonanie ruchu -> TWEEN
                 const move = new MovementAnimation(gameManager.raycaster.piece, position.x, position.z);
                 move.startMove();
 
-                // Po wykonaniu ruchu pobranie nowej pozycji 
-                let newPosition = "";
-
-                // przestawienie bierki w tablicy :
-                //  teraz trzeba wysłać fetchem nowe ustawienie bierek
-                //  trzeba przesłać bierkę, jej starą pozycję i nową pozycję 
+                // Wysłanie do serwera nowej pozycji
+                gameManager.net.sendNewPosition(oldPiecePositionInArray, newPiecePositionInArray);
             }
             console.log("opuszczanie");
             if (gameManager.raycaster.piece.userData.pieceColor === 1) gameManager.raycaster.piece.material.color.set(0xffffff);

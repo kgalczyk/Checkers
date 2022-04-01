@@ -64,8 +64,25 @@ class Net {
     }
 
     async sendNewPosition(oldPosition, newPosition) {
+        const body = {
+            old: oldPosition,
+            new: newPosition
+        }
 
+        const options = {
+            method: 'POST',
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify(body)
+        }
+
+        // wysłanie pozycji sprzed i po ruchu
+        // w odpowiedzi to samo, żeby uaktualnić planszę u obu graczy 
+        let json = await gameManager.net.fetchAsync(options, "/position");
+        console.log(json);
     }
+
+    // DO ZROBIENIA
+    // Wysyłanie w setIntervalu zapytania o nową pozycję planszy
 
     // fetch asynchroniczny 
     async fetchAsync(options, url) {

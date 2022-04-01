@@ -77,6 +77,10 @@ class Game { // Klasa generuje planszę do gry oraz posiada metodę tworzącą b
                 this.fieldsObjects.push(this.field);
             }
         }
+
+        // Stałe zawierające szerokość i wysokość planszy
+        this.BOARD_WIDTH = this.gameTable.length * this.field.geometry.parameters.width;
+        this.BOARD_DEPTH = this.gameTable[0].length * this.field.geometry.parameters.depth;
     }
 
     // Metoda tworząca bierki w początkowym ułożeniu
@@ -117,7 +121,7 @@ class Game { // Klasa generuje planszę do gry oraz posiada metodę tworzącą b
     }
 
     findNotationEquivalentMove = (piece, oldPosition, newPosition) => {
-        
+
     }
 
     resizeRenderer() {
