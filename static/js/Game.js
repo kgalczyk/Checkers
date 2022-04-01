@@ -1,7 +1,5 @@
 // warcaby:
 //     problemy do pokonania:
-//          1. poruszanie bierek po skosie, po opuszczeniu bierki automatyczne ustawienie jej
-//             na najbliższe, sąsiednie do wyjściowego, czarne pole [jeśli znajduje się dosyć blisko],
 //          2. zbijanie, czyli ruch o dwa pola nad bierką przeciwnika
 //          3. przymus bicia, jeśli bicie jest możliwe
 //          4. funkcje + fetch, które ogarną zmianę pozycji na planszy dla obu graczy
@@ -88,8 +86,22 @@ class Game { // Klasa generuje planszę do gry oraz posiada metodę tworzącą b
 
         for (let i = -4; i < 4; i++) {
             for (let j = -4; j < 4; j++) {
-                if (this.pieces[i + 4][j + 4] === 1) this.piece = new Piece(0xffffff, 'textures/whitePiece.jpg', this.pieces[i + 4][j + 4]); // Nową bierkę tworzy klasa Piece pobierająca za parametry kolor tekstury i ścieżkę do pliku tekstury.
-                else if (this.pieces[i + 4][j + 4] === 2) this.piece = new Piece(0x4455aa, 'textures/blackField.jpg', this.pieces[i + 4][j + 4]);
+                if (this.pieces[i + 4][j + 4] === 1) {
+                    this.piece = new Piece(0xffffff, 'textures/whitePiece.jpg', this.pieces[i + 4][j + 4]);// Nową bierkę tworzy klasa Piece pobierająca za parametry kolor tekstury i ścieżkę do pliku tekstury.
+                    // powiązanie bierki z jej ustawieniem w tablicy game.pieces
+                    this.piece.userData.positionInPiecesArray = {
+                        x: i + 4,
+                        y: j + 4,
+                    };
+                }
+                else if (this.pieces[i + 4][j + 4] === 2) {
+                    this.piece = new Piece(0x4455aa, 'textures/blackField.jpg', this.pieces[i + 4][j + 4]);
+                    // powiązanie bierki z jej ustawieniem w tablicy game.pieces
+                    this.piece.userData.positionInPiecesArray = {
+                        x: i + 4,
+                        y: j + 4,
+                    };
+                }
                 else continue;
 
                 // Dodanie elementu do sceny
@@ -102,6 +114,10 @@ class Game { // Klasa generuje planszę do gry oraz posiada metodę tworzącą b
             }
         }
         this.piecesCreated = true;
+    }
+
+    findNotationEquivalentMove = (piece, oldPosition, newPosition) => {
+        
     }
 
     resizeRenderer() {

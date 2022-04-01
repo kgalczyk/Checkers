@@ -29,12 +29,19 @@ class Raycaster {
                 if (position === undefined) return;
                 console.log(position);
 
+                // Przed ruchem pobieranie pozycji bierki w tablicy
+                let oldPosition = gameManager.raycaster.piece.userData.positionInPiecesArray;
+
                 // wykonanie ruchu -> TWEEN
                 const move = new MovementAnimation(gameManager.raycaster.piece, position.x, position.z);
                 move.startMove();
-                // gameManager.raycaster.piece.position.set(position.x, 3.5, position.z);
-                // if (gameManager.raycaster.piece.userData.pieceColor === 1) gameManager.raycaster.piece.material.color.set(0xffffff);
-                //else gameManager.raycaster.piece.material.color.set(0x4455aa);
+
+                // Po wykonaniu ruchu pobranie nowej pozycji 
+                let newPosition = "";
+
+                // przestawienie bierki w tablicy :
+                //  teraz trzeba wysłać fetchem nowe ustawienie bierek
+                //  trzeba przesłać bierkę, jej starą pozycję i nową pozycję 
             }
             console.log("opuszczanie");
             if (gameManager.raycaster.piece.userData.pieceColor === 1) gameManager.raycaster.piece.material.color.set(0xffffff);

@@ -63,6 +63,10 @@ class Net {
         }, 500);
     }
 
+    async sendNewPosition(oldPosition, newPosition) {
+
+    }
+
     // fetch asynchroniczny 
     async fetchAsync(options, url) {
         let response = await fetch(url, options);
