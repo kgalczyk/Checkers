@@ -23,6 +23,7 @@ class Raycaster {
         if (gameManager.raycaster.piece) {
             if (intersects.length > 0 && !intersects[0].object.userData.isPiece) {
                 const point = intersects[0].point;
+                console.log(intersects[0].face);
                 let position = gameManager.raycaster.findSquareForThePiece(point);
 
                 // Jeśli nie znaleziono bierki, wychodzimy z funkcji
