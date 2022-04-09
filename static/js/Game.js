@@ -59,18 +59,18 @@ class Game { // Klasa generuje planszę do gry oraz posiada metodę tworzącą b
         for (let i = -4; i < 4; i++) {
             for (let j = -4; j < 4; j++) {
                 if (this.gameTable[i + 4][j + 4] == 1) {
-                    this.field = new Field('textures/blackField.jpg');
+                    this.field = new Field('textures/blackField.jpg', 20, 5, 20, j + 4, i + 4);
                     // Dodanie informacji o kolorze pola 
-                    this.field.userData.fieldColor = 1;
+                    this.field.fieldColor = 1;
                 } else {
-                    this.field = new Field('textures/whiteField.png');
+                    this.field = new Field('textures/whiteField.png', 20, 5, 20, j + 4, i + 4);
                     // Dodanie informacji o kolorze pola 
-                    this.field.userData.fieldColor = 0;
+                    this.field.fieldColor = 0;
                 }
 
                 // Ustawienia pozycji pola wg algorytmu: ilość kroków od środka osi (i lub j) * półtora szerokości (width) lub głębi (depth) pola szachownicy
-                this.field.position.x = (i + 0.5) * this.field.geometry.parameters.width; // Wartość szerokości pola jest pobierana z 
-                this.field.position.z = (j + 0.5) * this.field.geometry.parameters.depth;// Pola geometry obiektu stworzonego przez THREEjs
+                this.field.position.x = (i + 0.5) * this.field.fieldWidth; // Wartość szerokości pola jest pobierana z 
+                this.field.position.z = (j + 0.5) * this.field.fieldDepth;// Pola geometry obiektu stworzonego przez THREEjs
 
                 // Dodanie elementu do sceny oraz do tablicy przechowującej kolejne pola.
                 this.scene.add(this.field);
@@ -79,8 +79,8 @@ class Game { // Klasa generuje planszę do gry oraz posiada metodę tworzącą b
         }
 
         // Stałe zawierające szerokość i wysokość planszy
-        this.BOARD_WIDTH = this.gameTable.length * this.field.geometry.parameters.width;
-        this.BOARD_DEPTH = this.gameTable[0].length * this.field.geometry.parameters.depth;
+        this.BOARD_WIDTH = this.gameTable.length * this.field.fieldWidth;
+        this.BOARD_DEPTH = this.gameTable[0].length * this.field.fieldDepth;
     }
 
     // Metoda tworząca bierki w początkowym ułożeniu
@@ -91,23 +91,22 @@ class Game { // Klasa generuje planszę do gry oraz posiada metodę tworzącą b
         for (let i = -4; i < 4; i++) {
             for (let j = -4; j < 4; j++) {
                 if (this.pieces[i + 4][j + 4] === 1) {
-                    this.piece = new Piece(0xffffff, 'textures/whitePiece.jpg', this.pieces[i + 4][j + 4]);// Nową bierkę tworzy klasa Piece pobierająca za parametry kolor tekstury i ścieżkę do pliku tekstury.
+                    this.piece = new Piece(0xffffff, 'textures/whitePiece.jpg', this.pieces[i + 4][j + 4], 7, 7, 5, 25);// Nową bierkę tworzy klasa Piece pobierająca za parametry kolor tekstury i ścieżkę do pliku tekstury.
                     // powiązanie bierki z jej ustawieniem w tablicy game.pieces
-                    this.piece.userData.positionInPiecesArray = {
+                    this.piece.positionInPiecesArray = {
                         x: i + 4,
                         y: j + 4,
                     };
                 }
                 else if (this.pieces[i + 4][j + 4] === 2) {
-                    this.piece = new Piece(0x4455aa, 'textures/blackField.jpg', this.pieces[i + 4][j + 4]);
+                    this.piece = new Piece(0x4455aa, 'textures/blackField.jpg', this.pieces[i + 4][j + 4], 7, 7, 5, 25);
                     // powiązanie bierki z jej ustawieniem w tablicy game.pieces
-                    this.piece.userData.positionInPiecesArray = {
+                    this.piece.positionInPiecesArray = {
                         x: i + 4,
                         y: j + 4,
                     };
                 }
                 else continue;
-
                 // Dodanie elementu do sceny
                 gameManager.game.scene.add(this.piece);
                 // Dodanie elementu do tablicy bierek
