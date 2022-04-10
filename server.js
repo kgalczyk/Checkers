@@ -1,7 +1,7 @@
 var express = require("express");
 const PORT = 3000;
 var app = express();
-app.use(express.static('static'));
+app.use(express.static('Checkers/static'));
 app.use(express.json());
 
 
@@ -17,16 +17,35 @@ app.post("/addUser", function (req, res) {
 
 app.post("/playerCount", function (req, res) {
     console.log("ilu:", playerManager.users.length);
-    console.log(req.body);
     const data = { "playersInGame": playerManager.users.length };
     res.end(JSON.stringify(data));
 })
 
 app.post("/position", function (req, res) {
-    console.log(req.body);
     const json = req.body;
-    console.log(json);
+    if (json.who !== positionManager.whoseTurn) return;// jeśli ruch wykonał gracz, który akurat ma ruch odsyłamy dane
+    // zmiana pozycji w tablicy
+    // aktualizacja danych na serwerze
+    positionManager.swapFields(json.old.x, json.old.y, json.new.x, json.new.y);
+    positionManager.nextMoveStartPosition = json.start;
+    positionManager.nextMoveFinalPosition = json.target;
+    positionManager.previousIndexes = json.old;
+    positionManager.currentIndexes = json.new;
+    positionManager.whoseTurn = !positionManager.whoseTurn;
+    // odesłanie json-a z nowymi indexami, nową pozycją bierki
     res.end(JSON.stringify(json));
+})
+
+app.post("/change", (req, res) => {
+    let data = {
+        old: positionManager.previousIndexes,
+        new: positionManager.currentIndexes,
+        start: positionManager.nextMoveStartPosition,
+        target: positionManager.nextMoveFinalPosition,
+        whoseTurn: positionManager.whoseTurn
+    };
+
+    res.end(JSON.stringify(data));
 })
 
 // Obiekt do zarządzania logowaniem, użytkownikami
@@ -41,17 +60,27 @@ let playerManager = {
         this.users.push(newUser);
         console.log("obecni użytkownicy:", playerManager.users);
         console.log("ilu:", playerManager.users.length);
-        return { status: "PLAYER_ADDED", player: newUser.login, pieceColor: playerManager.users.length };
+        return { status: "PLAYER_ADDED", player: newUser.login, color: playerManager.setPlayerPieceColor(), pieceColor: playerManager.users.length };
     },
 
     findUserNameIndex: function (user) {
         for (let i in this.users)
             if (user === this.users[i]) return i;
     },
+
+    setPlayerPieceColor: () => {
+        if (playerManager.users.length === 1) return true;
+        return false;
+    }
 }
 
 // Obiekt do zarządzania pozycją na planszy i przebiegiem gry
 let positionManager = {
+    previousIndexes: 0,
+    currentIndexes: 0,
+    whoseTurn: true,
+    nextMoveStartPosition: 0,
+    nextMoveFinalPosition: 0,
     currentPositionTable: [
         [0, 1, 0, 1, 0, 1, 0, 1],
         [1, 0, 1, 0, 1, 0, 1, 0],
@@ -67,8 +96,9 @@ let positionManager = {
         const temp = this.currentPositionTable[x1][y1];
         this.currentPositionTable[x1][y1] = this.currentPositionTable[x2][y2];
         this.currentPositionTable[x2][y2] = temp;
+    },
+
+    getPositionTable: () => {
+        return this.currentPositionTable;
     }
 }
-
-
-
