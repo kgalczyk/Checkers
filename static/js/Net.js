@@ -1,4 +1,9 @@
 class Net {
+    pieceColor; // biały - 1 lub czarny - 2
+    color; // biały - true lub czarny - false
+    whoseTurn = true;
+    lastMoveData = null;
+    moveAccepted;
     constructor() {
         console.log("stworzono obiekt Net");
         this.player = "";
@@ -6,12 +11,9 @@ class Net {
     }
 
     // Metoda wysyła login użytkownika do serwera w celu zweryfikowania jego poprawności
-    async sendUserData() {
+    sendUserData = async () => {
         // Przygotowanie danych do fetcha
         const data = { "login": document.getElementById("login").value }
-
-        // Przypisanie nazwy użytkownika
-        gameManager.net.player = data.login;
         const options = {
             method: "POST",
             headers: { 'Content-Type': 'application/json' },
@@ -20,21 +22,28 @@ class Net {
 
         // Fetch 
         let json = await gameManager.net.fetchAsync(options, "/addUser");
-        console.log(json);
-
-        gameManager.net.checkUserCount(json.player);
-        // Wyświetlenie statusu uzyskanego z serwera
-        gameManager.ui.displayLoginStatusResponse(json);
 
         // Return jeśli nick gracza nie został podany
         if (json.player === undefined) return;
 
+        this.checkUserCount(json.player);
+
+        // Przypisanie nazwy użytkownika
+        gameManager.net.player = data.login;
+
+        // Wyświetlenie statusu uzyskanego z serwera
+        gameManager.ui.displayLoginStatusResponse(json);
+
+        // Zapisanie koloru bierek gracza
+        this.pieceColor = json.pieceColor;
+        this.color = json.color;
+
         // I wyświetlamy powitanie gracza na stronie
-        gameManager.ui.welcomeUser(json.player, json.pieceColor);
+        gameManager.ui.welcomeUser(json.player, json.color, json.pieceColor);
     }
 
     // Metoda, która wysyła zapytanie o liczbę graczy w grze do serwera
-    async checkUserCount(player) {
+    checkUserCount = async (player) => {
         gameManager.interval = setInterval(async function () {
             // kropki w innerHTML-u waiting screen-u
             gameManager.net.dotsCounter++;
@@ -63,10 +72,13 @@ class Net {
         }, 500);
     }
 
-    async sendNewPosition(oldPosition, newPosition) {
+    sendNewPosition = async (oldPosition, newPosition, piecePosition, fieldPosition) => {
         const body = {
             old: oldPosition,
-            new: newPosition
+            new: newPosition,
+            start: piecePosition,
+            target: fieldPosition,
+            who: this.color
         }
 
         const options = {
@@ -78,11 +90,30 @@ class Net {
         // wysłanie pozycji sprzed i po ruchu
         // w odpowiedzi to samo, żeby uaktualnić planszę u obu graczy 
         let json = await gameManager.net.fetchAsync(options, "/position");
+
+        // klient w sumie nie potrzebuje tych danych z powrotem :(
         console.log(json);
     }
 
-    // DO ZROBIENIA
-    // Wysyłanie w setIntervalu zapytania o nową pozycję planszy
+    waitForChange = async () => {
+        const options = {
+            method: 'POST',
+            headers: { "content-type": "application/json" },
+        }
+        let json = await this.fetchAsync(options, "/change");
+
+        // aktualizacja tury
+        this.whoseTurn = json.whoseTurn;
+        gameManager.net.whoseTurn = json.whoseTurn;
+        gameManager.raycaster.whoseTurn = json.whoseTurn;
+
+        // wykonanie ruchu
+        if (json.target !== 0) {
+            gameManager.game.handleNewMove(json.start, json.target);
+            gameManager.game.swap(json.old, json.new);
+            return;
+        }
+    }
 
     // fetch asynchroniczny 
     async fetchAsync(options, url) {
