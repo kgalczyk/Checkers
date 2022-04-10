@@ -1,4 +1,6 @@
 class Ui {
+    interval;
+    pieceColor;
     constructor() {
         console.log("stworzono obiekt UI");
     }
@@ -17,7 +19,7 @@ class Ui {
         document.getElementById("login").value = "";
     }
 
-    welcomeUser(userName, pieceColor) {
+    welcomeUser(userName, pieceColor, color) {
         console.log(pieceColor);
         // decycja o kolorze bierek
         if (pieceColor == 1) pieceColor = "białymi";
@@ -25,6 +27,8 @@ class Ui {
             pieceColor = "czarnymi";
             this.setCameraOnBlackPieces();
         }
+
+        this.pieceColor = color;
 
         // element z nickiem gracza
         let userNameWelcome = document.createElement("h2");
@@ -53,13 +57,18 @@ class Ui {
         loginScene.appendChild(waitingScreen);
     }
 
-    removeLoginPage() {
+    removeLoginPage = () => {
         let scene = document.getElementById("scene");
         scene.removeChild(document.getElementById("login-scene"));
 
         // stworzenie bierek
         gameManager.game.createPieces();
-        gameManager.raycaster = new Raycaster();
+
+        // Stworzenie raycastera
+        gameManager.raycaster = new Raycaster(gameManager.game.piecesObjects, gameManager.game.fieldsObjects, this.pieceColor);
+
+        // Rozpoczęcie wysyłania zapytania o nową pozycję
+        this.interval = setInterval(() => { gameManager.net.waitForChange() }, 1000);
     }
 
     setCameraOnBlackPieces() {
