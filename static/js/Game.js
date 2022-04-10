@@ -90,22 +90,10 @@ class Game { // Klasa generuje planszę do gry oraz posiada metodę tworzącą b
 
         for (let i = -4; i < 4; i++) {
             for (let j = -4; j < 4; j++) {
-                if (this.pieces[i + 4][j + 4] === 1) {
+                if (this.pieces[i + 4][j + 4] === 1)
                     this.piece = new Piece(0xffffff, 'textures/whitePiece.jpg', this.pieces[i + 4][j + 4], 7, 7, 5, 25);// Nową bierkę tworzy klasa Piece pobierająca za parametry kolor tekstury i ścieżkę do pliku tekstury.
-                    // powiązanie bierki z jej ustawieniem w tablicy game.pieces
-                    this.piece.positionInPiecesArray = {
-                        x: i + 4,
-                        y: j + 4,
-                    };
-                }
-                else if (this.pieces[i + 4][j + 4] === 2) {
+                else if (this.pieces[i + 4][j + 4] === 2)
                     this.piece = new Piece(0x4455aa, 'textures/blackField.jpg', this.pieces[i + 4][j + 4], 7, 7, 5, 25);
-                    // powiązanie bierki z jej ustawieniem w tablicy game.pieces
-                    this.piece.positionInPiecesArray = {
-                        x: i + 4,
-                        y: j + 4,
-                    };
-                }
                 else continue;
                 // Dodanie elementu do sceny
                 gameManager.game.scene.add(this.piece);
@@ -114,13 +102,42 @@ class Game { // Klasa generuje planszę do gry oraz posiada metodę tworzącą b
 
                 const parameters = this.fieldsObjects[this.piecesObjects.length - 1].geometry.parameters; // Pobranie wymiarów fielda
                 this.piece.position.set((j + 0.5) * parameters.width, 3.5, (i + 0.5) * parameters.depth); // Bierkę należy stosownie ustawić -> obliczamy odstęp podobnie jak z polami szachownicy
+                // powiązanie bierki z jej ustawieniem w tablicy game.pieces
+                this.piece.positionInPiecesArray = {
+                    x: i + 4,
+                    y: j + 4,
+                };
             }
         }
         this.piecesCreated = true;
     }
 
-    findNotationEquivalentMove = (piece, oldPosition, newPosition) => {
+    swap = (oldIndexes, newIndexes) => {
+        const temp = this.pieces[oldIndexes.x][oldIndexes.y];
+        this.pieces[oldIndexes.x][oldIndexes.y] = this.pieces[newIndexes.x][newIndexes.y];
+        this.pieces[newIndexes.x][newIndexes.y] = temp;
+    }
 
+    findPieceByPosition = (x, z) => {
+        return this.piecesObjects.find((piece) => {
+            if (x === piece.position.x && z === piece.position.z) {
+                console.log(piece);
+                return piece;
+            };
+            return null;
+        })
+    }
+
+    renderNewPosition = (piece, newPosition) => {
+        console.log(newPosition);
+        const move = new MovementAnimation(piece, newPosition.x, newPosition.z);
+        move.startMove();
+    }
+
+    handleNewMove = (start, target) => {
+        let piece = this.findPieceByPosition(start.x, start.z);
+        if (piece === undefined) return;
+        this.renderNewPosition(piece, target);
     }
 
     resizeRenderer() {
