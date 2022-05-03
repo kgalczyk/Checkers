@@ -114,6 +114,7 @@ class Game { // Klasa generuje planszę do gry oraz posiada metodę tworzącą b
 
     swap = (oldIndexes, newIndexes) => {
         const temp = this.pieces[oldIndexes.x][oldIndexes.y];
+        if (temp === 0) return;
         this.pieces[oldIndexes.x][oldIndexes.y] = this.pieces[newIndexes.x][newIndexes.y];
         this.pieces[newIndexes.x][newIndexes.y] = temp;
     }

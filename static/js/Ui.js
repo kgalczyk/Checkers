@@ -1,6 +1,9 @@
 class Ui {
     interval;
     pieceColor;
+    opponentMoveIntervalWorking = false;
+    infoShowed = false;
+
     constructor() {
         console.log("stworzono obiekt UI");
     }
@@ -22,6 +25,7 @@ class Ui {
     welcomeUser(userName, pieceColor, color) {
         console.log(pieceColor);
         // decycja o kolorze bierek
+
         if (pieceColor == 1) pieceColor = "białymi";
         else {
             pieceColor = "czarnymi";
@@ -33,10 +37,35 @@ class Ui {
         // element z nickiem gracza
         let userNameWelcome = document.createElement("h2");
         userNameWelcome.id = "user-welcome";
-        userNameWelcome.innerHTML = `Witaj <span style="color:purple">${userName}</span>, grasz ${pieceColor}`;
+        userNameWelcome.innerHTML = `Witaj <span style="color:yellow">${userName}</span>, grasz ${pieceColor}`;
 
         // dodanie elementu do dokumentu
         document.getElementById("scene").appendChild(userNameWelcome);
+
+        this.displayInfoButton();
+    }
+
+    displayInfoButton = () => {
+        let infoButton = document.createElement("div");
+        infoButton.onclick = this.displayGameTable;
+        infoButton.innerHTML = "info";
+        infoButton.classList.add("info-button");
+
+        document.getElementById("info").append(infoButton);
+    }
+
+    displayGameTable = () => {
+        let info = document.getElementById("info");
+        info.classList.add("board-table");
+
+        info.innerHTML = "";
+
+        let board = JSON.stringify(gameManager.game.pieces);
+        board = board.slice(1, board.length);
+
+        info.innerHTML = board;
+
+        this.infoShowed = true;
     }
 
     displayWaitingScreen(dotsNumber) {
@@ -69,6 +98,38 @@ class Ui {
 
         // Rozpoczęcie wysyłania zapytania o nową pozycję
         this.interval = setInterval(() => { gameManager.net.waitForChange() }, 1000);
+    }
+
+    displayOpponentTurnScreen = () => {
+        if (this.opponentMoveIntervalWorking) return;
+
+        let opponentMoveScreen = document.createElement("div");
+        opponentMoveScreen.innerHTML = 30;
+        opponentMoveScreen.id = "opponentTurn";
+        opponentMoveScreen.classList.add("counter");
+        document.getElementById("scene").append(opponentMoveScreen);
+
+        this.opponentMoveIntervalWorking = true;
+        this.setOpponentTurnInterval();
+    }
+
+    setOpponentTurnInterval = () => {
+        let opponentMoveScreen = document.getElementById("opponentTurn");
+        this.opponentMoveInterval = setInterval(() => {
+            opponentMoveScreen.innerHTML -= 1;
+            if (gameManager.net.color === gameManager.net.whoseTurn) this.clearOpponentTurnInterval();
+
+            if (opponentMoveScreen.innerHTML == 0) {
+                gameManager.net.lose();
+                this.clearOpponentTurnInterval();
+            };
+        }, 1000)
+    }
+
+    clearOpponentTurnInterval = () => {
+        document.getElementById("opponentTurn").remove();
+        this.opponentMoveIntervalWorking = false;
+        clearInterval(this.opponentMoveInterval);
     }
 
     setCameraOnBlackPieces() {

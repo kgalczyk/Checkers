@@ -26,6 +26,8 @@ app.post("/position", function (req, res) {
     if (json.who !== positionManager.whoseTurn) return;// jeśli ruch wykonał gracz, który akurat ma ruch odsyłamy dane
     // zmiana pozycji w tablicy
     // aktualizacja danych na serwerze
+    console.log(positionManager.currentPositionTable);
+
     positionManager.swapFields(json.old.x, json.old.y, json.new.x, json.new.y);
     positionManager.nextMoveStartPosition = json.start;
     positionManager.nextMoveFinalPosition = json.target;
@@ -60,7 +62,12 @@ let playerManager = {
         this.users.push(newUser);
         console.log("obecni użytkownicy:", playerManager.users);
         console.log("ilu:", playerManager.users.length);
-        return { status: "PLAYER_ADDED", player: newUser.login, color: playerManager.setPlayerPieceColor(), pieceColor: playerManager.users.length };
+        return {
+            status: "PLAYER_ADDED",
+            player: newUser.login,
+            color: playerManager.setPlayerPieceColor(),
+            pieceColor: playerManager.users.length
+        };
     },
 
     findUserNameIndex: function (user) {
@@ -97,8 +104,4 @@ let positionManager = {
         this.currentPositionTable[x1][y1] = this.currentPositionTable[x2][y2];
         this.currentPositionTable[x2][y2] = temp;
     },
-
-    getPositionTable: () => {
-        return this.currentPositionTable;
-    }
 }

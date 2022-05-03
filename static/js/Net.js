@@ -2,8 +2,6 @@ class Net {
     pieceColor; // biały - 1 lub czarny - 2
     color; // biały - true lub czarny - false
     whoseTurn = true;
-    lastMoveData = null;
-    moveAccepted;
     constructor() {
         console.log("stworzono obiekt Net");
         this.player = "";
@@ -23,6 +21,9 @@ class Net {
         // Fetch 
         let json = await gameManager.net.fetchAsync(options, "/addUser");
 
+        // Wyświetlenie statusu uzyskanego z serwera
+        gameManager.ui.displayLoginStatusResponse(json);
+
         // Return jeśli nick gracza nie został podany
         if (json.player === undefined) return;
 
@@ -30,9 +31,6 @@ class Net {
 
         // Przypisanie nazwy użytkownika
         gameManager.net.player = data.login;
-
-        // Wyświetlenie statusu uzyskanego z serwera
-        gameManager.ui.displayLoginStatusResponse(json);
 
         // Zapisanie koloru bierek gracza
         this.pieceColor = json.pieceColor;
@@ -102,6 +100,9 @@ class Net {
         }
         let json = await this.fetchAsync(options, "/change");
 
+        console.log(this.color, json.whoseTurn);
+        if (this.color !== json.whoseTurn) gameManager.ui.displayOpponentTurnScreen();
+
         // aktualizacja tury
         this.whoseTurn = json.whoseTurn;
         gameManager.net.whoseTurn = json.whoseTurn;
@@ -111,8 +112,12 @@ class Net {
         if (json.target !== 0) {
             gameManager.game.handleNewMove(json.start, json.target);
             gameManager.game.swap(json.old, json.new);
-            return;
+            if (gameManager.ui.infoShowed) gameManager.ui.displayGameTable();
         }
+    }
+
+    lose = () => {
+        console.log("lose");
     }
 
     // fetch asynchroniczny 
@@ -122,4 +127,4 @@ class Net {
         else return await response.json(); // response.json
     }
 
-}
+} 
