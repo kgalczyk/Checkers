@@ -5,8 +5,12 @@ class Field extends THREE.Mesh {
 
     isPiece;
     isField;
+    isPossibleToMove = false;
 
     indexes;
+
+    MOVEABLE_COLOR = "#11eedd";
+
     constructor(texture, fieldWidth, fieldHeight, fieldDepth, x, y) {
 
         const boxGeometry = new THREE.BoxGeometry(fieldWidth, fieldHeight, fieldDepth);
@@ -17,8 +21,15 @@ class Field extends THREE.Mesh {
         this.fieldWidth = fieldWidth; // Oś x
         this.fieldDepth = fieldDepth; // Oś z
         this.fieldHeight = fieldHeight; // Oś y
-        this.isPiece = false; // Pole Obiekt3D.userData jest polem obiektu dla danych użytkownika
+        this.isPiece = false;
         this.isField = true;
         this.indexes = { x: x, y: y };
+        this.texture = texture;
+    }
+
+    clearFieldMaterial = () => {
+        this.material = new THREE.MeshBasicMaterial({
+            map: new THREE.TextureLoader().load(this.texture),
+        });
     }
 }
