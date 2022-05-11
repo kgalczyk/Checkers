@@ -2,6 +2,7 @@ class Field extends THREE.Mesh {
     fieldWidth;
     fieldHeight;
     fieldDepth;
+    texture;
 
     isPiece;
     isField;

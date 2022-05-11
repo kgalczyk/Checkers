@@ -5,11 +5,13 @@ class Raycaster {
     intersects;
 
     piece; // pole na obecnie podniesioną bierkę
+    pieceToTake;
     pieces; // tablica obiektów bierek rodem z Game'a
     field;
     fields; // tablica obiektów pól rodem z Game'a
     fieldsToMove;
     fieldToMove;
+    fieldsToTake;
 
     // kolory figur
     heldPiecesColor; // żółty bądź czerwony w hexie
@@ -48,33 +50,9 @@ class Raycaster {
         ray.setFromCamera(this.mouseVector, gameManager.game.camera);
         intersects = ray.intersectObjects(gameManager.game.scene.children);
 
-        if (this.piece) {
-            if (intersects.length > 0 && intersects[0].object.isField) {
-                console.log(this.whoseTurn, this.color);
-                if (this.piece.pieceColor !== this.piecesColor) return;
-                if (this.whoseTurn !== this.color) return;
+        if (this.piece)
+            this.makeMove(intersects);
 
-                this.field = this.findSquareForThePiece(intersects[0].point);
-                if (this.field === undefined) return;
-                if (!this.field.isPossibleToMove) return;
-
-                // zmiana pozycji bierki
-                let oldPiecePositionInArray = this.piece.positionInPiecesArray; // Przed ruchem pobieranie pozycji bierki w tablicy
-                let newPiecePositionInArray = this.field.indexes;// Przekazanie nowej pozycji do konwersji na współrzędne w tablicy bierek
-                this.piece.updatePositionInArray(newPiecePositionInArray);
-
-                // Wysłanie do serwera nowej pozycji
-                gameManager.net.sendNewPosition(oldPiecePositionInArray, newPiecePositionInArray, this.piece.position, this.field.position);
-
-                // wykonanie ruchu -> TWEEN
-                const move = new MovementAnimation(this.piece, this.field.position.x, this.field.position.z);
-                move.startMove();
-            }
-
-            this.piece.material.color.set(this.originalPieceColor);
-            this.piece = null;
-            this.clearInnormalFieldColor(this.fieldsToMove);
-        }
 
         if (intersects.length > 0 && intersects[0].object.isPiece) {
             this.piece = intersects[0].object;
@@ -87,6 +65,45 @@ class Raycaster {
             this.piece.material.color.set(this.heldPiecesColor);
             return;
         }
+    }
+
+    makeMove = (intersects) => {
+        if (intersects.length > 0 && intersects[0].object.isField) {
+            if (this.piece.pieceColor !== this.piecesColor) return;
+            if (this.whoseTurn !== this.color) return;
+
+            this.field = this.findSquareForThePiece(intersects[0].point);
+            if (this.field === undefined) return;
+            if (!this.field.isPossibleToMove) return;
+
+            // trzeba sprawdzić, czy pionek nie zbił pionka
+            // porównanie pozycji pierwotnej pionka i połowy wektora ruchu z pozycją zbijanego
+            let takenPiecePosition = {
+                x: this.field.position.x - (this.field.position.x - this.piece.position.x) / 2,
+                z: this.field.position.z - (this.field.position.z - this.piece.position.z) / 2
+            }
+
+            if (this.pieceToTake)
+                if (takenPiecePosition.x === this.pieceToTake.position.x && takenPiecePosition.z === this.pieceToTake.position.z)
+                    this.pieceToTake.isTaken = true;
+
+            // zmiana pozycji bierki
+            let oldPiecePositionInArray = this.piece.positionInPiecesArray; // Przed ruchem pobieranie pozycji bierki w tablicy
+            let newPiecePositionInArray = this.field.indexes;// Przekazanie nowej pozycji do konwersji na współrzędne w tablicy bierek
+            this.piece.updatePositionInArray(newPiecePositionInArray);
+
+            // Wysłanie do serwera nowej pozycji
+            gameManager.net.sendNewPosition(oldPiecePositionInArray, newPiecePositionInArray, this.piece.position, this.field.position);
+
+            // wykonanie ruchu -> TWEEN
+            const move = new MovementAnimation(this.piece, this.field.position.x, this.field.position.z);
+            move.startMove();
+        }
+
+        this.piece.material.color.set(this.originalPieceColor);
+        this.piece = null;
+        this.clearInnormalFieldColor(this.fieldsToMove);
+        this.removeTakenPieces();
     }
 
     moveMouse = (event) => {
@@ -104,18 +121,27 @@ class Raycaster {
         // (x+, z+) v (x-, z+)
         // czarne
         // (x+, z-) v (x-, z-)
-        let fields = this.checkForNormalMoves(piecePosition);
+        let fields = this.checkForNormalMoves(piecePosition); // zawsze zwraca dwa pola po przekątnych
+        console.log(fields);
         if (fields === undefined) return;
 
-        fields = this.checkForTakeMoves(fields);
-        console.log(fields);
-        if (this.fieldToMove) fields.push(this.fieldToMove); /// trzeba jeszcze sprawdzić, czy na tym polu nie ma bierki
+        let takeFields = this.checkForTakeMoves(fields);
+        console.log(takeFields);
+        fields = this.checkForPiecesInNormalMove(fields);
 
         fields.forEach((field) => {
             field.isPossibleToMove = true;
             field.material.color.set(field.MOVEABLE_COLOR);
         })
         this.fieldsToMove = fields;
+        this.fieldsToTake = takeFields;
+    }
+
+    checkForPiecesInNormalMove = (fields) => {
+        return fields.filter((field) => {
+            let piece = this.findSquaresWithPieces(field.position);
+            if (!piece) return field;
+        })
     }
 
     checkForNormalMoves = (piecePosition) => {
@@ -131,13 +157,14 @@ class Raycaster {
     checkForTakeMoves = (fields) => {
         return fields.filter((field) => {
             let piece = this.findSquaresWithPieces(field.position);
-            if (piece) {
-                let vector = { x: field.position.x - this.field.position.x, z: field.position.z - this.field.position.z }; // to jest wektor ruchu
+            if (piece && piece.pieceColor !== this.piece.pieceColor) {
+                let vector = { x: field.position.x - this.piece.position.x, z: field.position.z - this.piece.position.z }; // to jest wektor ruchu
                 console.log("wektor ruchu:", vector);
-                let position = { x: this.field.position.x + 2 * vector.x, z: this.field.position.z + 2 * vector.z };
-                this.fieldToMove = this.findFieldByPosition(position);
-            } else
+                let position = { x: this.piece.position.x + 2 * vector.x, z: this.piece.position.z + 2 * vector.z };
+                fields.push(this.findFieldByPosition(position)); // xd, to działa na oryginalnej tablicy
+                this.pieceToTake = this.findPieceByPosition(position.x - vector.x, position.z - vector.z);
                 return field;
+            }
         })
     }
 
@@ -157,8 +184,13 @@ class Raycaster {
 
     findFieldByPosition = (position) => {
         return this.fields.find((field) => {
-            console.log(field.position);
             if (field.position.x === position.x && field.position.z === position.z) return field;
+        })
+    }
+
+    findPieceByPosition = (x, z) => {
+        return this.pieces.find((piece) => {
+            if (x === piece.position.x && z === piece.position.z) return piece;
         })
     }
 
@@ -175,5 +207,16 @@ class Raycaster {
                 if (field.fieldColor === 1)
                     return field;
         });
+    }
+
+    removeTakenPieces = () => {
+        console.log(this.pieceToTake);
+        if (this.pieceToTake && this.pieceToTake.isTaken) {
+            gameManager.game.scene.remove(this.pieceToTake);
+            let index = this.pieces.indexOf((piece) => {
+                if (this.pieceToTake.uuid === piece.uuid) return piece;
+            })
+            this.pieces.splice(index + 1, 1);
+        };
     }
 }

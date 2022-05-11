@@ -6,7 +6,9 @@ class Piece extends THREE.Mesh {
 
     positionInPiecesArray;
     pieceColor;
+
     isPiece;
+    isTaken = false;
     constructor(color, texture, pieceColor, pieceRadiusTop, pieceRadiusBottom, pieceHeight, segments) {
         // geometria, materiał
         const cylinderGeometry = new THREE.CylinderGeometry(pieceRadiusTop, pieceRadiusBottom, pieceHeight, segments);
