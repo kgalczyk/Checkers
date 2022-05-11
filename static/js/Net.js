@@ -100,7 +100,6 @@ class Net {
         }
         let json = await this.fetchAsync(options, "/change");
 
-        console.log(this.color, json.whoseTurn);
         if (this.color !== json.whoseTurn) gameManager.ui.displayOpponentTurnScreen();
 
         // aktualizacja tury
@@ -110,10 +109,33 @@ class Net {
 
         // wykonanie ruchu
         if (json.target !== 0) {
+            if (json.taken) {
+                console.log(json);
+                gameManager.game.removePieceFromArray(json.indexesOfTakenPiece);
+                let piece = gameManager.game.findPieceByPosition(json.takenPiecePosition.x, json.takenPiecePosition.z);
+                console.log("bierka zbita: " + piece); /// nie widzi tego, pytanie, dlaczego
+                gameManager.game.removePieceObject(piece);
+            };
             gameManager.game.handleNewMove(json.start, json.target);
             gameManager.game.swap(json.old, json.new);
             if (gameManager.ui.infoShowed) gameManager.ui.displayGameTable();
         }
+    }
+
+    takePieceChange = async (pieceIndexes, piecePosition) => {
+        const json = JSON.stringify({
+            pieceIndexes: pieceIndexes,
+            piecePosition: piecePosition
+        })
+
+        const options = {
+            method: 'POST',
+            headers: { "content-type": "application/json" },
+            body: json
+        }
+
+        let response = await this.fetchAsync(options, "/take");
+        console.log(response);
     }
 
     lose = () => {

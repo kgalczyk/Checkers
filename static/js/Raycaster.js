@@ -103,7 +103,8 @@ class Raycaster {
         this.piece.material.color.set(this.originalPieceColor);
         this.piece = null;
         this.clearInnormalFieldColor(this.fieldsToMove);
-        this.removeTakenPieces();
+        let removed = this.removeTakenPieces();
+        if (removed) gameManager.net.takePieceChange(this.fieldsToTake[0].indexes, this.pieceToTake.position);
     }
 
     moveMouse = (event) => {
@@ -122,11 +123,9 @@ class Raycaster {
         // czarne
         // (x+, z-) v (x-, z-)
         let fields = this.checkForNormalMoves(piecePosition); // zawsze zwraca dwa pola po przekątnych
-        console.log(fields);
         if (fields === undefined) return;
 
         let takeFields = this.checkForTakeMoves(fields);
-        console.log(takeFields);
         fields = this.checkForPiecesInNormalMove(fields);
 
         fields.forEach((field) => {
@@ -159,7 +158,6 @@ class Raycaster {
             let piece = this.findSquaresWithPieces(field.position);
             if (piece && piece.pieceColor !== this.piece.pieceColor) {
                 let vector = { x: field.position.x - this.piece.position.x, z: field.position.z - this.piece.position.z }; // to jest wektor ruchu
-                console.log("wektor ruchu:", vector);
                 let position = { x: this.piece.position.x + 2 * vector.x, z: this.piece.position.z + 2 * vector.z };
                 fields.push(this.findFieldByPosition(position)); // xd, to działa na oryginalnej tablicy
                 this.pieceToTake = this.findPieceByPosition(position.x - vector.x, position.z - vector.z);
@@ -181,16 +179,17 @@ class Raycaster {
             if (piece.position.x === position.x && piece.position.z === position.z) return piece;
         })
     }
+    // niby to samo xd
+    // ale co tam
+    findPieceByPosition = (x, z) => {
+        return this.pieces.find((piece) => {
+            if (x === piece.position.x && z === piece.position.z) return piece;
+        })
+    }
 
     findFieldByPosition = (position) => {
         return this.fields.find((field) => {
             if (field.position.x === position.x && field.position.z === position.z) return field;
-        })
-    }
-
-    findPieceByPosition = (x, z) => {
-        return this.pieces.find((piece) => {
-            if (x === piece.position.x && z === piece.position.z) return piece;
         })
     }
 
@@ -217,6 +216,8 @@ class Raycaster {
                 if (this.pieceToTake.uuid === piece.uuid) return piece;
             })
             this.pieces.splice(index + 1, 1);
+            return true;
         };
+        return false;
     }
 }

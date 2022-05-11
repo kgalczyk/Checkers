@@ -119,6 +119,14 @@ class Game { // Klasa generuje planszę do gry oraz posiada metodę tworzącą b
         this.pieces[newIndexes.x][newIndexes.y] = temp;
     }
 
+    removePieceFromArray = (indexes) => {
+        this.pieces[indexes.x][indexes.y] = 0;
+    }
+
+    removePieceObject = (piece) => {
+        this.scene.remove(piece);
+    }
+
     findPieceByPosition = (x, z) => {
         return this.piecesObjects.find((piece) => {
             if (x === piece.position.x && z === piece.position.z) {
