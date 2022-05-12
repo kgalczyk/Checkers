@@ -101,7 +101,7 @@ class Net {
 
         if (this.color !== json.whoseTurn) gameManager.ui.displayOpponentTurnScreen();
 
-
+        console.log("czy zbito pionka:", json.taken);
         if (json.taken)
             console.log("dane o ruchu:", json);
 
@@ -116,13 +116,13 @@ class Net {
                 gameManager.game.removePieceFromArray(json.indexesOfTakenPiece);
                 let pieceToRemove = gameManager.game.findPieceByPosition(json.takenPiecePosition.x, json.takenPiecePosition.z);
                 console.log("bierka zbita: ", pieceToRemove); /// nie widzi tego, pytanie, dlaczego
+                console.log("tablica pionków przed usunięciem:", gameManager.raycaster.pieces);
 
-                // let index = gameManager.game.piecesObjects.indexOf((piece) => {
-                //     if (pieceToRemove.uuid === piece.uuid) return piece;
-                // })
-                // gameManager.raycaster.pieces.splice(index, 1);
+                gameManager.raycaster.pieces = gameManager.raycaster.pieces.filter((piece) => {
+                    if (piece.uuid != pieceToRemove.uuid) return piece;
+                });
+                console.log("tablica pionków:", gameManager.raycaster.pieces);
                 // gameManager.game.piecesObjects.splice(index, 1);
-                // console.log("tablica po usunięciu bierki", gameManager.game.piecesObjects);
                 gameManager.game.removePieceObject(pieceToRemove);
             };
             gameManager.game.handleNewMove(json.start, json.target);
@@ -146,7 +146,7 @@ class Net {
         }
 
         let response = await this.fetchAsync(options, "/take");
-        console.log(response);
+        // console.log(response);
     }
 
     lose = () => {

@@ -104,11 +104,6 @@ class Raycaster {
         this.piece = null;
         this.clearInnormalFieldColor(this.fieldsToMove);
         this.removeTakenPieces();
-
-        if (!this.pieceToTake) return;
-        gameManager.net.takePieceChange(this.fieldsToTake[0].indexes, this.pieceToTake.position);
-        this.pieceToTake.isTaken = false;
-
     }
 
     moveMouse = (event) => {
@@ -165,6 +160,7 @@ class Raycaster {
             if (piece && piece.pieceColor !== this.piece.pieceColor) {
                 let vector = { x: field.position.x - this.piece.position.x, z: field.position.z - this.piece.position.z }; // to jest wektor ruchu
                 let position = { x: this.piece.position.x + 2 * vector.x, z: this.piece.position.z + 2 * vector.z };
+
                 fields.push(this.findFieldByPosition(position)); // xd, to działa na oryginalnej tablicy
                 this.pieceToTake = this.findPieceByPosition(position.x - vector.x, position.z - vector.z);
                 return field;
@@ -178,7 +174,7 @@ class Raycaster {
             field.isPossibleToMove = false;
             field.clearFieldMaterial();
         })
-        // this.pieceToTake = null;
+        this.fieldToMove = null;
     }
 
     findSquaresWithPieces = (position) => {
@@ -219,6 +215,9 @@ class Raycaster {
         console.log(this.pieceToTake);
         if (this.pieceToTake && this.pieceToTake.isTaken) {
             gameManager.game.removePieceObject(this.pieceToTake);
+            if (this.fieldsToTake) gameManager.net.takePieceChange(this.fieldsToTake[0].indexes, this.pieceToTake.position);
+            this.pieceToTake.isTaken = false;
+            this.fieldsToTake = null;
         };
     }
 }
