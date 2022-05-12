@@ -130,7 +130,6 @@ class Game { // Klasa generuje planszę do gry oraz posiada metodę tworzącą b
     findPieceByPosition = (x, z) => {
         return this.piecesObjects.find((piece) => {
             if (x === piece.position.x && z === piece.position.z) {
-                console.log(piece);
                 return piece;
             };
             return null;
@@ -138,7 +137,6 @@ class Game { // Klasa generuje planszę do gry oraz posiada metodę tworzącą b
     }
 
     renderNewPosition = (piece, newPosition) => {
-        console.log(newPosition);
         const move = new MovementAnimation(piece, newPosition.x, newPosition.z);
         move.startMove();
     }
