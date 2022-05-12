@@ -120,10 +120,23 @@ class Ui {
             if (gameManager.net.color === gameManager.net.whoseTurn) this.clearOpponentTurnInterval();
 
             if (opponentMoveScreen.innerHTML == 0) {
-                gameManager.net.lose();
-                this.clearOpponentTurnInterval();
+                gameManager.net.win();
+                this.win();
             };
         }, 1000)
+    }
+
+    win = () => {
+        clearInterval(this.opponentMoveInterval);
+        document.getElementById("opponentTurn").innerHTML = "wygrana";
+    }
+
+    lose = () => {
+        let opponentMoveScreen = document.createElement("div");
+        opponentMoveScreen.id = "opponentTurn";
+        opponentMoveScreen.classList.add("counter");
+        document.getElementById("scene").append(opponentMoveScreen);
+        document.getElementById("opponentTurn").innerHTML = "przegrana";
     }
 
     clearOpponentTurnInterval = () => {

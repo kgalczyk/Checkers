@@ -99,36 +99,85 @@ class Net {
         }
         let json = await this.fetchAsync(options, "/change");
 
-        if (this.color !== json.whoseTurn) gameManager.ui.displayOpponentTurnScreen();
+        this.executeChanges(json);
+    }
 
-        console.log("czy zbito pionka:", json.taken);
-        if (json.taken)
-            console.log("dane o ruchu:", json);
+    executeChanges = (json) => {
+        // sprawdzenie statusu gry. Jeśli status jest równy 1, to znaczy że gra się skończyła
+        let status = this.endTheGame(json);
+        if (status) return;
+
+        // zmiana eventów -> wyłączenie jeśli nie jest nasza tura
+        // włączenie, jeśli nasza tura
+        this.changeEvents(json);
 
         // aktualizacja tury
+        this.updateTurn(json);
+
+        // wykonanie ruchu
+        this.executeMove(json);
+    }
+
+    executeMove = (json) => {
+        if (json.target !== 0) {
+            this.executeTakeMove(json);
+            this.executeNormalMove(json);
+        }
+    }
+
+    executeTakeMove = (json) => {
+        if (json.taken) {
+            let pieceToRemove = gameManager.game.findPieceByPosition(json.takenPiecePosition.x, json.takenPiecePosition.z);
+
+            gameManager.raycaster.pieces = gameManager.raycaster.pieces.filter((piece) => {
+                if (piece.uuid != pieceToRemove.uuid) return piece;
+            });
+
+            console.log("tablica pionków:", gameManager.raycaster.pieces);
+            console.log("czy zbito pionka:", json.taken);
+            console.log("dane o ruchu:", json);
+            console.log("bierka zbita: ", pieceToRemove); /// nie widzi tego, pytanie, dlaczego
+
+            gameManager.game.removePieceFromArray(json.indexesOfTakenPiece);
+            gameManager.game.removePieceObject(pieceToRemove);
+        };
+    }
+
+    executeNormalMove = (json) => {
+        gameManager.game.handleNewMove(json.start, json.target);
+        gameManager.game.swap(json.old, json.new);
+        if (gameManager.ui.infoShowed) gameManager.ui.displayGameTable();
+    }
+
+    updateTurn = (json) => {
         this.whoseTurn = json.whoseTurn;
         gameManager.net.whoseTurn = json.whoseTurn;
         gameManager.raycaster.whoseTurn = json.whoseTurn;
+    }
 
-        // wykonanie ruchu
-        if (json.target !== 0) {
-            if (json.taken) {
-                gameManager.game.removePieceFromArray(json.indexesOfTakenPiece);
-                let pieceToRemove = gameManager.game.findPieceByPosition(json.takenPiecePosition.x, json.takenPiecePosition.z);
-                console.log("bierka zbita: ", pieceToRemove); /// nie widzi tego, pytanie, dlaczego
-                console.log("tablica pionków przed usunięciem:", gameManager.raycaster.pieces);
-
-                gameManager.raycaster.pieces = gameManager.raycaster.pieces.filter((piece) => {
-                    if (piece.uuid != pieceToRemove.uuid) return piece;
-                });
-                console.log("tablica pionków:", gameManager.raycaster.pieces);
-                // gameManager.game.piecesObjects.splice(index, 1);
-                gameManager.game.removePieceObject(pieceToRemove);
-            };
-            gameManager.game.handleNewMove(json.start, json.target);
-            gameManager.game.swap(json.old, json.new);
-            if (gameManager.ui.infoShowed) gameManager.ui.displayGameTable();
+    changeEvents = (json) => {
+        if (json.whoseTurn !== this.color) {
+            window.onclick = () => { return; };
+            window.onmousemove = () => { return; };
+            gameManager.ui.displayOpponentTurnScreen();
+        } else {
+            window.onclick = gameManager.raycaster.clickOnBoard;
+            window.onmousemove = gameManager.raycaster.moveMouse;
         }
+    }
+
+    endTheGame = (json) => {
+        if (json.status !== -1) {
+            window.onclick = () => { console.log("koniec gry"); };
+            window.onmousemove = () => { console.log("koniec gry"); };
+            clearInterval(gameManager.ui.interval);
+
+            if (json.winner !== this.color) {
+                gameManager.ui.lose();
+            }
+            return true;
+        }
+        return false;
     }
 
     takePieceChange = async (pieceIndexes, piecePosition) => {
@@ -149,8 +198,21 @@ class Net {
         // console.log(response);
     }
 
-    lose = () => {
-        console.log("lose");
+    win = async () => {
+        console.log("win");
+        const data = {
+            status: 1,
+            winner: this.color
+        }
+
+        const options = {
+            method: 'POST',
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify(data)
+        }
+
+        let response = await this.fetchAsync(options, "/win");
+        console.log(response);
     }
 
     // fetch asynchroniczny 
