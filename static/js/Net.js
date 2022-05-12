@@ -90,7 +90,6 @@ class Net {
         let json = await gameManager.net.fetchAsync(options, "/position");
 
         // klient w sumie nie potrzebuje tych danych z powrotem :(
-        console.log(json);
     }
 
     waitForChange = async () => {
@@ -102,6 +101,10 @@ class Net {
 
         if (this.color !== json.whoseTurn) gameManager.ui.displayOpponentTurnScreen();
 
+
+        if (json.taken)
+            console.log("dane o ruchu:", json);
+
         // aktualizacja tury
         this.whoseTurn = json.whoseTurn;
         gameManager.net.whoseTurn = json.whoseTurn;
@@ -110,7 +113,6 @@ class Net {
         // wykonanie ruchu
         if (json.target !== 0) {
             if (json.taken) {
-                console.log(JSON.stringify(json, null, 5));
                 gameManager.game.removePieceFromArray(json.indexesOfTakenPiece);
                 let pieceToRemove = gameManager.game.findPieceByPosition(json.takenPiecePosition.x, json.takenPiecePosition.z);
                 console.log("bierka zbita: ", pieceToRemove); /// nie widzi tego, pytanie, dlaczego
@@ -118,9 +120,10 @@ class Net {
                 let index = gameManager.game.piecesObjects.indexOf((piece) => {
                     if (pieceToRemove.uuid === piece.uuid) return piece;
                 })
-                gameManager.raycaster.pieces.splice(index + 1, 1);
-                gameManager.game.piecesObjects.splice(index + 1, 1);
-                gameManager.game.removePieceObject(piece);
+                gameManager.raycaster.pieces.splice(index, 1);
+                gameManager.game.piecesObjects.splice(index, 1);
+                console.log("tablica po usunięciu bierki", gameManager.game.piecesObjects);
+                gameManager.game.removePieceObject(pieceToRemove);
             };
             gameManager.game.handleNewMove(json.start, json.target);
             gameManager.game.swap(json.old, json.new);
@@ -129,9 +132,11 @@ class Net {
     }
 
     takePieceChange = async (pieceIndexes, piecePosition) => {
+        let color = this.color;
         const json = JSON.stringify({
             pieceIndexes: pieceIndexes,
-            piecePosition: piecePosition
+            piecePosition: piecePosition,
+            whoTakes: color,
         })
 
         const options = {

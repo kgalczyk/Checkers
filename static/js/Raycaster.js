@@ -103,8 +103,12 @@ class Raycaster {
         this.piece.material.color.set(this.originalPieceColor);
         this.piece = null;
         this.clearInnormalFieldColor(this.fieldsToMove);
-        let removed = this.removeTakenPieces();
-        if (removed) gameManager.net.takePieceChange(this.fieldsToTake[0].indexes, this.pieceToTake.position);
+        this.removeTakenPieces();
+
+        if (!this.pieceToTake) return;
+        gameManager.net.takePieceChange(this.fieldsToTake[0].indexes, this.pieceToTake.position);
+        this.pieceToTake.isTaken = false;
+
     }
 
     moveMouse = (event) => {
@@ -123,9 +127,11 @@ class Raycaster {
         // czarne
         // (x+, z-) v (x-, z-)
         let fields = this.checkForNormalMoves(piecePosition); // zawsze zwraca dwa pola po przekątnych
+        console.log(fields);
         if (fields === undefined) return;
 
         let takeFields = this.checkForTakeMoves(fields);
+        console.log(takeFields);
         fields = this.checkForPiecesInNormalMove(fields);
 
         fields.forEach((field) => {
@@ -172,6 +178,7 @@ class Raycaster {
             field.isPossibleToMove = false;
             field.clearFieldMaterial();
         })
+        // this.pieceToTake = null;
     }
 
     findSquaresWithPieces = (position) => {
@@ -211,15 +218,7 @@ class Raycaster {
     removeTakenPieces = () => {
         console.log(this.pieceToTake);
         if (this.pieceToTake && this.pieceToTake.isTaken) {
-            let index = this.pieces.indexOf((piece) => {
-                if (this.pieceToTake.uuid === piece.uuid) return piece;
-            })
-            this.pieces.splice(index + 1, 1);
-            gameManager.game.piecesObjects.splice(index + 1, 1);
-            console.log("tablice bierek", this.pieces, gameManager.game.piecesObjects);
             gameManager.game.removePieceObject(this.pieceToTake);
-            return true;
         };
-        return false;
     }
 }
