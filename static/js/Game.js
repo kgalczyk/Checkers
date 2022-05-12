@@ -11,7 +11,7 @@ class Game { // Klasa generuje planszę do gry oraz posiada metodę tworzącą b
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 10000);
         this.renderer = new THREE.WebGLRenderer();
-        this.renderer.setClearColor(0xaa00ff);
+        this.renderer.setClearColor(0x123456);
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         document.getElementById("root").append(this.renderer.domElement);
 
