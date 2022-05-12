@@ -10,7 +10,6 @@ class Raycaster {
     field;
     fields; // tablica obiektów pól rodem z Game'a
     fieldsToMove;
-    fieldToMove;
     fieldsToTake;
 
     // kolory figur
@@ -122,12 +121,11 @@ class Raycaster {
         // czarne
         // (x+, z-) v (x-, z-)
         let fields = this.checkForNormalMoves(piecePosition); // zawsze zwraca dwa pola po przekątnych
-        console.log(fields);
         if (fields === undefined) return;
 
         let takeFields = this.checkForTakeMoves(fields);
-        console.log(takeFields);
         fields = this.checkForPiecesInNormalMove(fields);
+        console.log("możliwe pola ruchu:", fields);
 
         fields.forEach((field) => {
             field.isPossibleToMove = true;
@@ -174,7 +172,6 @@ class Raycaster {
             field.isPossibleToMove = false;
             field.clearFieldMaterial();
         })
-        this.fieldToMove = null;
     }
 
     findSquaresWithPieces = (position) => {
@@ -212,7 +209,7 @@ class Raycaster {
     }
 
     removeTakenPieces = () => {
-        console.log(this.pieceToTake);
+        console.log("ostatnio zbity pionek:", this.pieceToTake);
         if (this.pieceToTake && this.pieceToTake.isTaken) {
             gameManager.game.removePieceObject(this.pieceToTake);
             if (this.fieldsToTake) gameManager.net.takePieceChange(this.fieldsToTake[0].indexes, this.pieceToTake.position);

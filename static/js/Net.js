@@ -96,6 +96,7 @@ class Net {
         const options = {
             method: 'POST',
             headers: { "content-type": "application/json" },
+            body: JSON.stringify({ who: this.color })
         }
         let json = await this.fetchAsync(options, "/change");
 
@@ -130,7 +131,7 @@ class Net {
             let pieceToRemove = gameManager.game.findPieceByPosition(json.takenPiecePosition.x, json.takenPiecePosition.z);
 
             gameManager.raycaster.pieces = gameManager.raycaster.pieces.filter((piece) => {
-                if (piece.uuid != pieceToRemove.uuid) return piece;
+                if (piece.position.x != pieceToRemove.position.x || piece.position.z != pieceToRemove.position.z) return piece;
             });
 
             console.log("tablica pionków:", gameManager.raycaster.pieces);
